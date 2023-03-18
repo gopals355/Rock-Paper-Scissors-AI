@@ -1,40 +1,46 @@
 import random
 
-class RPS_AI:
+class RPSAI:
     def __init__(self):
-        self.total_moves = {"rock": 0, "paper": 0, "scissors": 0}
-        self.winning_moves = {"rock": "scissors", "paper": "rock", "scissors": "paper"}
-        self.last_few_moves = []
-    
+        self.moves = ["rock", "paper", "scissors"]
+        self.winning_moves = {
+            "rock": "paper",
+            "paper": "scissors",
+            "scissors": "rock"
+        }
+        self.results = []
+
     def record_result(self, player_move, ai_move):
-        self.total_moves[player_move] += 1
-        self.total_moves[ai_move] += 1
-        self.last_few_moves.append(player_move)
-        if len(self.last_few_moves) > 3:
-            self.last_few_moves.pop(0)
-    
-    def predict_move(self):
-        if not self.last_few_moves:
-            return random.choice(list(self.total_moves.keys()))
-        move_counts = self.total_moves.copy()
-        for i in range(len(self.last_few_moves)-1):
-            move_counts[self.last_few_moves[i]] -= 1
-            if self.last_few_moves[i] == self.last_few_moves[-1]:
-                move_counts[self.last_few_moves[i+1]] -= 1
-        predicted_move = max(move_counts, key=move_counts.get)
-        counter_move = self.winning_moves[predicted_move]
-        return counter_move
-    
-    def make_move(self):
-        ai_move = self.predict_move()
-        player_move = input("Enter your move (rock/paper/scissors): ")
-        while player_move not in ["rock", "paper", "scissors"]:
-            print("Invalid move, please enter rock, paper, or scissors.")
-            player_move = input("Enter your move (rock/paper/scissors): ")
-        self.record_result(player_move, ai_move)
-        if ai_move == player_move:
-            print("Tie!")
+        if player_move == ai_move:
+            self.results.append("tie")
         elif ai_move == self.winning_moves[player_move]:
-            print("You win!")
+            self.results.append("loss")
         else:
-            print("I win!")
+            self.results.append("win")
+
+    def make_move(self):
+        if not self.results:
+            # If no results have been recorded yet, choose a random move
+            return random.choice(self.moves)
+
+        last_result = self.results[-1]
+        if last_result == "win":
+            # If the last result was a win, choose the move that beats the player's last move
+            player_last_move = self.moves[self.moves.index(self.results[-2])]
+            return self.winning_moves[player_last_move]
+        elif last_result == "loss":
+            # If the last result was a loss, choose a random move
+            return random.choice(self.moves)
+        else:
+            # If the last result was a tie, choose the move that beats the player's last move
+            player_last_move = self.moves[self.moves.index(self.results[-2])]
+            return self.winning_moves[player_last_move]
+
+# Example usage:
+ai = RPSAI()
+while True:
+    player_move = input("Enter your move (rock/paper/scissors): ")
+    ai_move = ai.make_move()
+    print(f"AI move: {ai_move}")
+    ai.record_result(player_move, ai_move)
+    print(f"Results so far: {ai.results}\n")
